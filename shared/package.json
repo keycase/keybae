@@ -94,7 +94,7 @@
     "iced-runtime": "1.0.3",
     "immer": "6.0.2",
     "lag-radar": "git://github.com/mobz/lag-radar",
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "lottie-react-native": "3.3.2",
     "lottie-react-web": "git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214",
     "memoize-one": "5.1.1",
