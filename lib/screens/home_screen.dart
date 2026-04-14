@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'discover_screen.dart';
+import 'identity_screen.dart';
+import 'proofs_screen.dart';
+import 'settings_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -10,20 +15,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  static const _tabs = <({String title, Widget body})>[
+    (title: 'Identity', body: IdentityScreen()),
+    (title: 'Proofs', body: ProofsScreen()),
+    (title: 'Discover', body: DiscoverScreen()),
+    (title: 'Settings', body: SettingsScreen()),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final screen = _tabs[_selectedIndex];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Keybae'),
+        title: Text('Keybae · ${screen.title}'),
       ),
-      body: Center(
-        child: _getBody(),
-      ),
+      body: screen.body,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-        },
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -44,101 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon: Icon(Icons.settings),
             label: 'Settings',
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return const _IdentityTab();
-      case 1:
-        return const _ProofsTab();
-      case 2:
-        return const _DiscoverTab();
-      case 3:
-        return const _SettingsTab();
-      default:
-        return const _IdentityTab();
-    }
-  }
-}
-
-class _IdentityTab extends StatelessWidget {
-  const _IdentityTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.key, size: 64, color: Colors.teal),
-          SizedBox(height: 16),
-          Text('Your Identity', style: TextStyle(fontSize: 24)),
-          SizedBox(height: 8),
-          Text('Create or import your cryptographic identity'),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProofsTab extends StatelessWidget {
-  const _ProofsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.verified, size: 64, color: Colors.teal),
-          SizedBox(height: 16),
-          Text('Your Proofs', style: TextStyle(fontSize: 24)),
-          SizedBox(height: 8),
-          Text('Link your identity to domains and URLs'),
-        ],
-      ),
-    );
-  }
-}
-
-class _DiscoverTab extends StatelessWidget {
-  const _DiscoverTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search, size: 64, color: Colors.teal),
-          SizedBox(height: 16),
-          Text('Discover', style: TextStyle(fontSize: 24)),
-          SizedBox(height: 8),
-          Text('Find and verify other identities'),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsTab extends StatelessWidget {
-  const _SettingsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.settings, size: 64, color: Colors.teal),
-          SizedBox(height: 16),
-          Text('Settings', style: TextStyle(fontSize: 24)),
-          SizedBox(height: 8),
-          Text('Server, keys, and preferences'),
         ],
       ),
     );

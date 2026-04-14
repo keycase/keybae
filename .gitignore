@@ -7,3 +7,5 @@ pubspec.lock
 .vscode/
 *.swp
 .DS_Store
+.flutter-plugins
+.flutter-plugins-dependencies
