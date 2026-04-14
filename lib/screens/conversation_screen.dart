@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/message.dart';
+import '../services/event_handler.dart';
 import '../state/key_provider.dart';
 import '../state/message_provider.dart';
 import '../widgets/relative_time.dart';
@@ -19,10 +20,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
   final _scrollCtrl = ScrollController();
   bool _loadingOlder = false;
 
+  int _lastMessageCount = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventHandler>().activeConversation = widget.username;
       context.read<MessageProvider>().loadConversation(widget.username);
     });
     _scrollCtrl.addListener(_onScroll);
@@ -30,10 +34,34 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   @override
   void dispose() {
+    final handler = context.read<EventHandler>();
+    if (handler.activeConversation == widget.username) {
+      handler.activeConversation = null;
+    }
     _inputCtrl.dispose();
     _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _maybeAutoScroll(int newCount) {
+    if (newCount <= _lastMessageCount) {
+      _lastMessageCount = newCount;
+      return;
+    }
+    _lastMessageCount = newCount;
+    // ListView is reverse:true so pixel 0 = visual bottom. Only scroll
+    // if the user is already near the bottom so we don't yank them.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollCtrl.hasClients) return;
+      if (_scrollCtrl.position.pixels < 120) {
+        _scrollCtrl.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _onScroll() {
@@ -69,6 +97,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     final provider = context.watch<MessageProvider>();
     final me = context.watch<KeyProvider>().username;
     final messages = provider.conversation;
+    _maybeAutoScroll(messages.length);
     return Scaffold(
       appBar: AppBar(title: Text('@${widget.username}')),
       body: Column(

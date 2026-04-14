@@ -16,6 +16,7 @@ dependencies:
   file_picker: ^8.0.0
   path_provider: ^2.1.0
   cryptography: ^2.7.0
+  web_socket_channel: ^3.0.0
   keycase_core:
     path: ../core
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../state/key_provider.dart';
 import '../state/message_provider.dart';
+import '../widgets/presence_dot.dart';
 import '../widgets/relative_time.dart';
 import 'compose_screen.dart';
 import 'conversation_screen.dart';
@@ -91,8 +92,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       final isMine =
                           c.lastMessage.message.senderUsername == keys.username;
                       return ListTile(
-                        leading: CircleAvatar(
-                          child: Text(c.username[0].toUpperCase()),
+                        leading: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            CircleAvatar(
+                              child: Text(c.username[0].toUpperCase()),
+                            ),
+                            Positioned(
+                              right: -1,
+                              bottom: -1,
+                              child: PresenceDot(username: c.username),
+                            ),
+                          ],
                         ),
                         title: Text(c.username),
                         subtitle: Text(

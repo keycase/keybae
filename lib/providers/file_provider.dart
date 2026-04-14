@@ -309,6 +309,14 @@ class FileProvider extends ChangeNotifier {
     }
   }
 
+  /// Inject a file that was just shared with the user so it appears
+  /// without needing a manual refresh.
+  void onFileShared(FileItem file) {
+    if (_files.any((f) => f.id == file.id)) return;
+    _files = [..._files, file];
+    notifyListeners();
+  }
+
   Future<FileItem?> refreshMetadata(String fileId) async {
     final creds = _creds();
     if (creds == null) return null;

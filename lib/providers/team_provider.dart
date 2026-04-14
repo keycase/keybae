@@ -236,6 +236,24 @@ class TeamProvider extends ChangeNotifier {
     }
   }
 
+  /// Inject a server-pushed team message into the active conversation.
+  Future<DecryptedTeamMessage> onIncomingTeamMessage(TeamMessage m) async {
+    final dm = await _decrypt(m);
+    if (_activeTeam?.id == m.teamId &&
+        !_messages.any((e) => e.message.id == m.id)) {
+      _messages = [..._messages, dm];
+      notifyListeners();
+    }
+    return dm;
+  }
+
+  /// Inject a team the user was just added to without needing a refresh.
+  void onTeamInvite(Team team) {
+    if (_teams.any((t) => t.id == team.id)) return;
+    _teams = [..._teams, team];
+    notifyListeners();
+  }
+
   Future<void> loadTeamMessages(String teamId,
       {int limit = 50, int offset = 0, bool append = false}) async {
     final creds = _creds();

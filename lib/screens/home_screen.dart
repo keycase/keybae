@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../services/ws_service.dart';
 import '../state/message_provider.dart';
+import '../widgets/connection_indicator.dart';
 import 'discover_screen.dart';
 import 'files_screen.dart';
 import 'identity_screen.dart';
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text('Keybae · ${screen.title}'),
         actions: [
+          ConnectionIndicator(ws: context.read<WsService>()),
           IconButton(
             tooltip: 'Discover',
             icon: const Icon(Icons.search),

@@ -6,9 +6,11 @@ import 'package:provider/provider.dart';
 
 import '../models/team.dart';
 import '../providers/team_provider.dart';
+import '../services/event_handler.dart';
 import '../state/key_provider.dart';
 import '../state/settings_provider.dart';
 import '../widgets/friendly_error.dart';
+import '../widgets/presence_dot.dart';
 import '../widgets/relative_time.dart';
 
 enum _TeamView { chat, members }
@@ -150,19 +152,45 @@ class _ChatViewState extends State<_ChatView> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _loadingOlder = false;
+  int _lastMessageCount = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventHandler>().activeTeamId = widget.teamId;
+    });
     _scrollCtrl.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    final handler = context.read<EventHandler>();
+    if (handler.activeTeamId == widget.teamId) {
+      handler.activeTeamId = null;
+    }
     _inputCtrl.dispose();
     _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  void _maybeAutoScroll(int newCount) {
+    if (newCount <= _lastMessageCount) {
+      _lastMessageCount = newCount;
+      return;
+    }
+    _lastMessageCount = newCount;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollCtrl.hasClients) return;
+      if (_scrollCtrl.position.pixels < 120) {
+        _scrollCtrl.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _onScroll() {
@@ -202,6 +230,7 @@ class _ChatViewState extends State<_ChatView> {
     final provider = context.watch<TeamProvider>();
     final me = context.watch<KeyProvider>().username;
     final messages = provider.messages;
+    _maybeAutoScroll(messages.length);
     return Column(
       children: [
         if (provider.loadingMessages && messages.isEmpty)
@@ -416,7 +445,17 @@ class _MembersView extends StatelessWidget {
           itemBuilder: (context, i) {
             final m = team.members[i];
             return ListTile(
-              leading: CircleAvatar(child: Text(m.username[0].toUpperCase())),
+              leading: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(child: Text(m.username[0].toUpperCase())),
+                  Positioned(
+                    right: -1,
+                    bottom: -1,
+                    child: PresenceDot(username: m.username),
+                  ),
+                ],
+              ),
               title: Text('@${m.username}${m.username == me ? ' (you)' : ''}'),
               subtitle: Text('joined ${formatRelativeTime(m.joinedAt)}'),
               trailing: Row(

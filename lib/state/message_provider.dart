@@ -141,6 +141,29 @@ class MessageProvider extends ChangeNotifier {
     }
   }
 
+  /// Inject a server-pushed message into the inbox and (if it belongs to
+  /// the active conversation) into the conversation view. Returns the
+  /// decrypted message so the caller can decide whether to notify.
+  Future<DecryptedMessage> onIncomingMessage(Message m) async {
+    final dm = await _decrypt(m);
+    if (!_inbox.any((e) => e.message.id == m.id)) {
+      _inbox = [dm, ..._inbox];
+    }
+    final me = _keys.username;
+    final otherUsername =
+        m.senderUsername == me ? m.recipientUsername : m.senderUsername;
+    if (_activeConversation == otherUsername &&
+        !_conversation.any((e) => e.message.id == m.id)) {
+      _conversation = [..._conversation, dm];
+      if (_isIncoming(m) && !m.read) {
+        // ignore: discarded_futures
+        markAsReadMessage(m.id);
+      }
+    }
+    notifyListeners();
+    return dm;
+  }
+
   Future<void> loadInbox() async {
     final creds = _creds();
     if (creds == null) return;

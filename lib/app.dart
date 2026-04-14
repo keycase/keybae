@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'main.dart' show rootMessengerKey;
 import 'screens/bootstrap_screen.dart';
 
 class KeybaeApp extends StatelessWidget {
@@ -9,6 +10,7 @@ class KeybaeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Keybae',
+      scaffoldMessengerKey: rootMessengerKey,
       theme: ThemeData(
         colorSchemeSeed: Colors.teal,
         useMaterial3: true,
