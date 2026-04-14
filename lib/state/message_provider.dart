@@ -4,6 +4,7 @@ import 'package:keycase_core/keycase_core.dart';
 import '../models/message.dart';
 import '../services/keycase_client.dart';
 import '../services/message_crypto.dart';
+import '../widgets/friendly_error.dart';
 import 'key_provider.dart';
 
 /// A conversation summary derived from the inbox.
@@ -154,7 +155,7 @@ class MessageProvider extends ChangeNotifier {
       }
       _inbox = decrypted;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loadingInbox = false;
       notifyListeners();
@@ -189,7 +190,7 @@ class MessageProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loadingConversation = false;
       notifyListeners();
@@ -216,7 +217,7 @@ class MessageProvider extends ChangeNotifier {
       _conversation = merged;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
     }
   }
@@ -252,7 +253,7 @@ class MessageProvider extends ChangeNotifier {
       _inbox = [dm, ..._inbox];
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       return false;
     } finally {
       _sending = false;

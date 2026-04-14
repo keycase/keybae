@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/keycase_client.dart';
 import '../state/key_provider.dart';
 import '../state/settings_provider.dart';
+import '../widgets/friendly_error.dart';
 import '../widgets/proof_status_chip.dart';
 import '../widgets/truncated_key.dart';
 
@@ -44,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _loading = false;
       });
     }
@@ -83,9 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign failed: $e')),
-      );
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _signing = false);
     }

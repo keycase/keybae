@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/bootstrap_screen.dart';
 
 class KeybaeApp extends StatelessWidget {
   const KeybaeApp({super.key});
@@ -20,7 +20,7 @@ class KeybaeApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const BootstrapScreen(),
     );
   }
 }

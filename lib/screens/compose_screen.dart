@@ -5,6 +5,7 @@ import 'package:keycase_core/keycase_core.dart';
 import 'package:provider/provider.dart';
 
 import '../state/settings_provider.dart';
+import '../widgets/friendly_error.dart';
 import 'conversation_screen.dart';
 
 class ComposeScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _ComposeScreenState extends State<ComposeScreen> {
     } catch (e) {
       if (!mounted || q != _lastQuery) return;
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _loading = false;
       });
     }

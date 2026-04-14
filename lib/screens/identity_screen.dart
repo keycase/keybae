@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../state/identity_provider.dart';
 import '../state/key_provider.dart';
 import '../state/proof_provider.dart';
+import '../widgets/friendly_error.dart';
 import '../widgets/proof_status_chip.dart';
 import '../widgets/truncated_key.dart';
 import 'proofs_screen.dart';
@@ -72,7 +73,7 @@ class _CreateIdentityViewState extends State<_CreateIdentityView> {
       await context.read<ProofProvider>().refresh();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorText = e.toString());
+      setState(() => _errorText = friendlyError(e));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

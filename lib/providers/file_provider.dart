@@ -5,6 +5,7 @@ import '../models/file_item.dart';
 import '../services/file_crypto.dart';
 import '../services/keycase_client.dart';
 import '../state/key_provider.dart';
+import '../widgets/friendly_error.dart';
 
 /// Maximum bytes accepted for upload.
 const int kMaxFileUploadBytes = 50 * 1024 * 1024;
@@ -90,7 +91,7 @@ class FileProvider extends ChangeNotifier {
       _folders = folders;
       _files = files;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loading = false;
       notifyListeners();
@@ -156,7 +157,7 @@ class FileProvider extends ChangeNotifier {
       _files = [..._files, file];
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       return false;
     } finally {
       _uploading = false;
@@ -191,7 +192,7 @@ class FileProvider extends ChangeNotifier {
         kp.privateKey!,
       );
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return null;
     }
@@ -206,7 +207,7 @@ class FileProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -241,7 +242,7 @@ class FileProvider extends ChangeNotifier {
       _replaceFile(updated);
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -261,7 +262,7 @@ class FileProvider extends ChangeNotifier {
       _replaceFile(meta);
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -287,7 +288,7 @@ class FileProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -302,7 +303,7 @@ class FileProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -316,7 +317,7 @@ class FileProvider extends ChangeNotifier {
       _replaceFile(meta);
       return meta;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return null;
     }

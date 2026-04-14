@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:keycase_core/keycase_core.dart';
 
 import '../services/keycase_client.dart';
+import '../widgets/friendly_error.dart';
 import 'key_provider.dart';
 
 class IdentityProvider extends ChangeNotifier {
@@ -54,7 +55,7 @@ class IdentityProvider extends ChangeNotifier {
       _error = null;
       return id;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       rethrow;
     } finally {
       _setLoading(false);
@@ -73,7 +74,7 @@ class IdentityProvider extends ChangeNotifier {
       _identity = await _client.lookupIdentity(username);
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _setLoading(false);
     }

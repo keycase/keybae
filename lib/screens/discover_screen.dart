@@ -5,6 +5,7 @@ import 'package:keycase_core/keycase_core.dart';
 import 'package:provider/provider.dart';
 
 import '../state/settings_provider.dart';
+import '../widgets/friendly_error.dart';
 import 'profile_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     } catch (e) {
       if (!mounted || q != _lastQuery) return;
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _loading = false;
       });
     }

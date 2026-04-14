@@ -8,6 +8,7 @@ import '../models/team.dart';
 import '../providers/team_provider.dart';
 import '../state/key_provider.dart';
 import '../state/settings_provider.dart';
+import '../widgets/friendly_error.dart';
 import '../widgets/relative_time.dart';
 
 enum _TeamView { chat, members }
@@ -522,7 +523,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = friendlyError(e);
         _loading = false;
       });
     }

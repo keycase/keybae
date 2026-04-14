@@ -5,6 +5,7 @@ import '../models/team.dart';
 import '../services/keycase_client.dart';
 import '../services/message_crypto.dart';
 import '../state/key_provider.dart';
+import '../widgets/friendly_error.dart';
 
 class TeamProvider extends ChangeNotifier {
   final KeyProvider _keys;
@@ -95,7 +96,7 @@ class TeamProvider extends ChangeNotifier {
     try {
       _teams = await _client.getMyTeams(creds: creds);
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loadingTeams = false;
       notifyListeners();
@@ -116,7 +117,7 @@ class TeamProvider extends ChangeNotifier {
       notifyListeners();
       return team;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return null;
     }
@@ -131,7 +132,7 @@ class TeamProvider extends ChangeNotifier {
     try {
       _activeTeam = await _client.getTeam(creds: creds, teamId: teamId);
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loadingTeam = false;
       notifyListeners();
@@ -151,7 +152,7 @@ class TeamProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -169,7 +170,7 @@ class TeamProvider extends ChangeNotifier {
       await loadTeamDetails(teamId);
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -188,7 +189,7 @@ class TeamProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -207,7 +208,7 @@ class TeamProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       notifyListeners();
       return false;
     }
@@ -265,7 +266,7 @@ class TeamProvider extends ChangeNotifier {
         _messages = decrypted;
       }
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
     } finally {
       _loadingMessages = false;
       notifyListeners();
@@ -311,7 +312,7 @@ class TeamProvider extends ChangeNotifier {
       ];
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = friendlyError(e);
       return false;
     } finally {
       _sending = false;

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../state/key_provider.dart';
 import '../state/proof_provider.dart';
+import '../widgets/friendly_error.dart';
 import '../widgets/proof_status_chip.dart';
 
 class ProofsScreen extends StatelessWidget {
@@ -88,9 +89,7 @@ class ProofsScreen extends StatelessWidget {
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Re-verify failed: $e')),
-      );
+      showErrorSnack(context, e);
     }
   }
 
@@ -230,7 +229,7 @@ class _AddProofScreenState extends State<AddProofScreen> {
         _publish = result.publish;
       });
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _preparing = false);
     }
@@ -263,7 +262,7 @@ class _AddProofScreenState extends State<AddProofScreen> {
       );
       Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

@@ -8,6 +8,7 @@ import '../state/identity_provider.dart';
 import '../state/key_provider.dart';
 import '../state/proof_provider.dart';
 import '../state/settings_provider.dart';
+import '../widgets/friendly_error.dart';
 
 const String kAppVersion = '0.1.0';
 
@@ -36,15 +37,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveUrl() async {
-    await context.read<SettingsProvider>().updateBaseUrl(_urlCtrl.text);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Server URL saved')),
-    );
-    // Refresh data against the new server.
-    await context.read<IdentityProvider>().refresh();
-    if (!mounted) return;
-    await context.read<ProofProvider>().refresh();
+    final trimmed = _urlCtrl.text.trim();
+    if (trimmed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a server URL')),
+      );
+      return;
+    }
+    if (!(trimmed.startsWith('http://') || trimmed.startsWith('https://'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('URL must start with http:// or https://')),
+      );
+      return;
+    }
+    try {
+      await context.read<SettingsProvider>().updateBaseUrl(trimmed);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Server URL saved')),
+      );
+      await context.read<IdentityProvider>().refresh();
+      if (!mounted) return;
+      await context.read<ProofProvider>().refresh();
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnack(context, e);
+    }
   }
 
   Future<void> _exportBackup() async {
@@ -56,6 +74,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       return;
     }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reveal private key?'),
+        content: const Text(
+          'The backup contains your private key in plaintext. Anyone who '
+          'sees it can impersonate you. Only display this on a trusted '
+          'device and copy it to secure storage immediately.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reveal'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     final payload = jsonEncode({
       'version': 1,
       'username': keys.username,
