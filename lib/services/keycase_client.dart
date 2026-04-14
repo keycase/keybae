@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:keycase_core/keycase_core.dart' as core;
 import 'package:keycase_core/keycase_core.dart' show Identity, Proof;
 
+import '../models/message.dart';
+
 class KeyCaseApiException implements Exception {
   final int statusCode;
   final String message;
@@ -132,6 +134,84 @@ class KeyCaseClient {
     );
     _ensureOk(r);
     return Proof.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<Message> sendMessage({
+    required ClientCredentials creds,
+    required String recipientUsername,
+    required String encryptedBody,
+    required String nonce,
+  }) async {
+    final body = jsonEncode({
+      'recipientUsername': recipientUsername,
+      'encryptedBody': encryptedBody,
+      'nonce': nonce,
+    });
+    final r = await _authPost(creds, '/api/v1/messages', body);
+    _ensureOk(r);
+    return Message.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<List<Message>> getInbox({
+    required ClientCredentials creds,
+    bool unreadOnly = false,
+  }) async {
+    final path = unreadOnly ? '/api/v1/messages?unread=true' : '/api/v1/messages';
+    final r = await _authGet(creds, path);
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['messages'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) Message.fromJson(j)];
+  }
+
+  Future<List<Message>> getConversation({
+    required ClientCredentials creds,
+    required String username,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final r = await _authGet(
+      creds,
+      '/api/v1/messages/$username?limit=$limit&offset=$offset',
+    );
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['messages'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) Message.fromJson(j)];
+  }
+
+  Future<void> markRead({
+    required ClientCredentials creds,
+    required String messageId,
+  }) async {
+    final r = await _authPut(creds, '/api/v1/messages/$messageId/read', '');
+    _ensureOk(r);
+  }
+
+  Future<http.Response> _authGet(ClientCredentials creds, String path) async {
+    final signature = await core.sign('GET $path', creds.privateKey);
+    return _client.get(
+      Uri.parse('$baseUrl$path'),
+      headers: {
+        'Authorization': 'KeyCase ${creds.username}:$signature',
+      },
+    );
+  }
+
+  Future<http.Response> _authPut(
+    ClientCredentials creds,
+    String path,
+    String body,
+  ) async {
+    final signature = await core.sign(body.isEmpty ? 'PUT $path' : body, creds.privateKey);
+    return _client.put(
+      Uri.parse('$baseUrl$path'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'KeyCase ${creds.username}:$signature',
+      },
+      body: body,
+    );
   }
 
   Future<http.Response> _authPost(
