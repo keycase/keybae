@@ -5,6 +5,7 @@ import 'package:keycase_core/keycase_core.dart' as core;
 import 'package:keycase_core/keycase_core.dart' show Identity, Proof;
 
 import '../models/message.dart';
+import '../models/team.dart';
 
 class KeyCaseApiException implements Exception {
   final int statusCode;
@@ -186,6 +187,124 @@ class KeyCaseClient {
   }) async {
     final r = await _authPut(creds, '/api/v1/messages/$messageId/read', '');
     _ensureOk(r);
+  }
+
+  // ---- Teams ----
+
+  Future<Team> createTeam({
+    required ClientCredentials creds,
+    required String name,
+    required String displayName,
+  }) async {
+    final body = jsonEncode({'name': name, 'displayName': displayName});
+    final r = await _authPost(creds, '/api/v1/teams', body);
+    _ensureOk(r);
+    return Team.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<List<Team>> getMyTeams({required ClientCredentials creds}) async {
+    final r = await _authGet(creds, '/api/v1/teams');
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['teams'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) Team.fromJson(j)];
+  }
+
+  Future<Team> getTeam({
+    required ClientCredentials creds,
+    required String teamId,
+  }) async {
+    final r = await _authGet(creds, '/api/v1/teams/$teamId');
+    _ensureOk(r);
+    return Team.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<Team> addTeamMember({
+    required ClientCredentials creds,
+    required String teamId,
+    required String username,
+    required String role,
+  }) async {
+    final body = jsonEncode({'username': username, 'role': role});
+    final r = await _authPost(creds, '/api/v1/teams/$teamId/members', body);
+    _ensureOk(r);
+    return Team.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<void> removeTeamMember({
+    required ClientCredentials creds,
+    required String teamId,
+    required String username,
+  }) async {
+    final r = await _authDelete(
+      creds,
+      '/api/v1/teams/$teamId/members/$username',
+    );
+    _ensureOk(r);
+  }
+
+  Future<Team> updateMemberRole({
+    required ClientCredentials creds,
+    required String teamId,
+    required String username,
+    required String role,
+  }) async {
+    final body = jsonEncode({'role': role});
+    final r = await _authPut(
+      creds,
+      '/api/v1/teams/$teamId/members/$username/role',
+      body,
+    );
+    _ensureOk(r);
+    return Team.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deleteTeam({
+    required ClientCredentials creds,
+    required String teamId,
+  }) async {
+    final r = await _authDelete(creds, '/api/v1/teams/$teamId');
+    _ensureOk(r);
+  }
+
+  Future<TeamMessage> sendTeamMessage({
+    required ClientCredentials creds,
+    required String teamId,
+    required List<Map<String, String>> recipients,
+  }) async {
+    final body = jsonEncode({'recipients': recipients});
+    final r = await _authPost(creds, '/api/v1/teams/$teamId/messages', body);
+    _ensureOk(r);
+    return TeamMessage.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<List<TeamMessage>> getTeamMessages({
+    required ClientCredentials creds,
+    required String teamId,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final r = await _authGet(
+      creds,
+      '/api/v1/teams/$teamId/messages?limit=$limit&offset=$offset',
+    );
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['messages'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) TeamMessage.fromJson(j)];
+  }
+
+  Future<http.Response> _authDelete(
+    ClientCredentials creds,
+    String path,
+  ) async {
+    final signature = await core.sign('DELETE $path', creds.privateKey);
+    return _client.delete(
+      Uri.parse('$baseUrl$path'),
+      headers: {
+        'Authorization': 'KeyCase ${creds.username}:$signature',
+      },
+    );
   }
 
   Future<http.Response> _authGet(ClientCredentials creds, String path) async {

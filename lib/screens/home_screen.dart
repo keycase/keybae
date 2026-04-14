@@ -7,6 +7,7 @@ import 'identity_screen.dart';
 import 'messages_screen.dart';
 import 'proofs_screen.dart';
 import 'settings_screen.dart';
+import 'teams_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
     (title: 'Identity', body: IdentityScreen()),
     (title: 'Proofs', body: ProofsScreen()),
     (title: 'Messages', body: MessagesScreen()),
+    (title: 'Teams', body: TeamsScreen()),
     (title: 'Settings', body: SettingsScreen()),
   ];
 
@@ -79,6 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.chat_bubble),
             ),
             label: 'Messages',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.groups_outlined),
+            selectedIcon: Icon(Icons.groups),
+            label: 'Teams',
           ),
           const NavigationDestination(
             icon: Icon(Icons.settings_outlined),
