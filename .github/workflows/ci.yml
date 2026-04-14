@@ -9,13 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: keybae
       - uses: actions/checkout@v4
         with:
           repository: keycase/core
-          path: ../core
+          path: core
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
       - run: flutter pub get
+        working-directory: keybae
       - run: flutter analyze
+        working-directory: keybae
       - run: flutter build web
+        working-directory: keybae
