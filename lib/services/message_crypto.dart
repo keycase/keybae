@@ -20,7 +20,7 @@ class MessageCrypto {
     String recipientPublicKey,
     String senderPrivateKey,
   ) async {
-    final combined = await core.encryptTo(
+    final combined = await core.encryptToIdentity(
       plaintext,
       recipientPublicKey,
       senderPrivateKey,
@@ -46,7 +46,7 @@ class MessageCrypto {
     final nonceBytes = base64Decode(nonce);
     final bodyBytes = base64Decode(encryptedBody);
     final combined = [...nonceBytes, ...bodyBytes];
-    return core.decryptFrom(
+    return core.decryptFromIdentity(
       base64Encode(combined),
       senderPublicKey,
       recipientPrivateKey,
