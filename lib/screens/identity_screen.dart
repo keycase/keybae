@@ -6,6 +6,7 @@ import '../state/key_provider.dart';
 import '../state/proof_provider.dart';
 import '../widgets/proof_status_chip.dart';
 import '../widgets/truncated_key.dart';
+import 'proofs_screen.dart';
 
 class IdentityScreen extends StatelessWidget {
   const IdentityScreen({super.key});
@@ -200,9 +201,26 @@ class _IdentityView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Verified proofs',
-            style: Theme.of(context).textTheme.titleMedium,
+          Row(
+            children: [
+              Text(
+                'Verified proofs',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: const Text('Keybae · Proofs')),
+                      body: const ProofsScreen(),
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.tune, size: 18),
+                label: const Text('Manage'),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           if (proofs.loading && proofs.proofs.isEmpty)
@@ -216,8 +234,8 @@ class _IdentityView extends StatelessWidget {
                 leading: Icon(Icons.info_outline),
                 title: Text('No proofs yet'),
                 subtitle: Text(
-                  'Head to the Proofs tab to link a domain, URL, or get '
-                  'another user to sign your key.',
+                  'Tap Manage to link a domain, URL, or get another user to '
+                  'sign your key.',
                 ),
               ),
             )

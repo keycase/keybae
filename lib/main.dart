@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'app.dart';
 import 'services/key_manager.dart';
+import 'providers/file_provider.dart';
 import 'providers/team_provider.dart';
 import 'state/identity_provider.dart';
 import 'state/key_provider.dart';
@@ -31,6 +32,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider<TeamProvider>(
           create: (_) => TeamProvider(keys: keys, client: settings.client),
+        ),
+        ChangeNotifierProvider<FileProvider>(
+          create: (_) => FileProvider(keys: keys, client: settings.client),
         ),
       ],
       child: const KeybaeApp(),

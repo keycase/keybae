@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../state/message_provider.dart';
 import 'discover_screen.dart';
+import 'files_screen.dart';
 import 'identity_screen.dart';
 import 'messages_screen.dart';
-import 'proofs_screen.dart';
 import 'settings_screen.dart';
 import 'teams_screen.dart';
 
@@ -21,9 +21,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _tabs = <({String title, Widget body})>[
     (title: 'Identity', body: IdentityScreen()),
-    (title: 'Proofs', body: ProofsScreen()),
     (title: 'Messages', body: MessagesScreen()),
     (title: 'Teams', body: TeamsScreen()),
+    (title: 'Files', body: FilesScreen()),
     (title: 'Settings', body: SettingsScreen()),
   ];
 
@@ -64,11 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon: Icon(Icons.person),
             label: 'Identity',
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.verified_outlined),
-            selectedIcon: Icon(Icons.verified),
-            label: 'Proofs',
-          ),
           NavigationDestination(
             icon: Badge(
               isLabelVisible: unread > 0,
@@ -86,6 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.groups_outlined),
             selectedIcon: Icon(Icons.groups),
             label: 'Teams',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder),
+            label: 'Files',
           ),
           const NavigationDestination(
             icon: Icon(Icons.settings_outlined),

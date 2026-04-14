@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:keycase_core/keycase_core.dart' as core;
 import 'package:keycase_core/keycase_core.dart' show Identity, Proof;
 
+import '../models/file_item.dart';
 import '../models/message.dart';
 import '../models/team.dart';
 
@@ -292,6 +294,148 @@ class KeyCaseClient {
     final data = jsonDecode(r.body) as Map<String, dynamic>;
     final arr = (data['messages'] as List).cast<Map<String, dynamic>>();
     return [for (final j in arr) TeamMessage.fromJson(j)];
+  }
+
+  // ---- Files ----
+
+  Future<FileItem> uploadFile({
+    required ClientCredentials creds,
+    required String filename,
+    required Uint8List encryptedBytes,
+    required String encryptedKey,
+    required String nonce,
+    String? folderId,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/v1/files');
+    final req = http.MultipartRequest('POST', uri);
+    // Sign the filename+key payload so the server can attribute the upload.
+    final canonical = '$filename|$encryptedKey|$nonce';
+    final signature = await core.sign(canonical, creds.privateKey);
+    req.headers['Authorization'] = 'KeyCase ${creds.username}:$signature';
+    req.fields['filename'] = filename;
+    req.fields['encryptedKey'] = encryptedKey;
+    req.fields['nonce'] = nonce;
+    if (folderId != null) req.fields['folderId'] = folderId;
+    req.files.add(http.MultipartFile.fromBytes(
+      'file',
+      encryptedBytes,
+      filename: filename,
+    ));
+    final streamed = await _client.send(req);
+    final r = await http.Response.fromStream(streamed);
+    _ensureOk(r);
+    return FileItem.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<List<FileItem>> listFiles({
+    required ClientCredentials creds,
+    String? folderId,
+  }) async {
+    final path = folderId == null
+        ? '/api/v1/files'
+        : '/api/v1/files?folderId=$folderId';
+    final r = await _authGet(creds, path);
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['files'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) FileItem.fromJson(j)];
+  }
+
+  Future<FileItem> getFileMetadata({
+    required ClientCredentials creds,
+    required String fileId,
+  }) async {
+    final r = await _authGet(creds, '/api/v1/files/$fileId');
+    _ensureOk(r);
+    return FileItem.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<Uint8List> downloadFile({
+    required ClientCredentials creds,
+    required String fileId,
+  }) async {
+    final path = '/api/v1/files/$fileId/download';
+    final signature = await core.sign('GET $path', creds.privateKey);
+    final r = await _client.get(
+      Uri.parse('$baseUrl$path'),
+      headers: {
+        'Authorization': 'KeyCase ${creds.username}:$signature',
+      },
+    );
+    if (r.statusCode < 200 || r.statusCode >= 300) {
+      throw KeyCaseApiException(r.statusCode, 'download failed');
+    }
+    return r.bodyBytes;
+  }
+
+  Future<void> deleteFile({
+    required ClientCredentials creds,
+    required String fileId,
+  }) async {
+    final r = await _authDelete(creds, '/api/v1/files/$fileId');
+    _ensureOk(r);
+  }
+
+  Future<FileItem> shareFile({
+    required ClientCredentials creds,
+    required String fileId,
+    required String username,
+    required String encryptedKey,
+    required String nonce,
+  }) async {
+    final body = jsonEncode({
+      'username': username,
+      'encryptedKey': encryptedKey,
+      'nonce': nonce,
+    });
+    final r = await _authPost(creds, '/api/v1/files/$fileId/share', body);
+    _ensureOk(r);
+    return FileItem.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<void> unshareFile({
+    required ClientCredentials creds,
+    required String fileId,
+    required String username,
+  }) async {
+    final r = await _authDelete(creds, '/api/v1/files/$fileId/share/$username');
+    _ensureOk(r);
+  }
+
+  Future<FolderItem> createFolder({
+    required ClientCredentials creds,
+    required String name,
+    String? parentFolderId,
+  }) async {
+    final body = jsonEncode({
+      'name': name,
+      if (parentFolderId != null) 'parentFolderId': parentFolderId,
+    });
+    final r = await _authPost(creds, '/api/v1/folders', body);
+    _ensureOk(r);
+    return FolderItem.fromJson(jsonDecode(r.body) as Map<String, dynamic>);
+  }
+
+  Future<List<FolderItem>> listFolders({
+    required ClientCredentials creds,
+    String? parentFolderId,
+  }) async {
+    final path = parentFolderId == null
+        ? '/api/v1/folders'
+        : '/api/v1/folders?parentFolderId=$parentFolderId';
+    final r = await _authGet(creds, path);
+    _ensureOk(r);
+    final data = jsonDecode(r.body) as Map<String, dynamic>;
+    final arr = (data['folders'] as List).cast<Map<String, dynamic>>();
+    return [for (final j in arr) FolderItem.fromJson(j)];
+  }
+
+  Future<void> deleteFolder({
+    required ClientCredentials creds,
+    required String folderId,
+  }) async {
+    final r = await _authDelete(creds, '/api/v1/folders/$folderId');
+    _ensureOk(r);
   }
 
   Future<http.Response> _authDelete(
